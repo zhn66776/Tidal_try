@@ -24,7 +24,42 @@ class BiLSTM_Reg(nn.Module):
 
         return out
 
+class ConvModule(nn.Module):
+    """
+    convolution-based options:
 
+    conv-1d:
+    (batch_size, channel_size, input_size)  input_size(seq_len)是conv-1d的操作维度
+    after conv:
+    seq_len' = (input_size - kernel_size + 2 * pad_size) // stride + 1
+    (k=3, s=1, p=1) 可以保持输入维度不变
+    """
+
+    def __init__(self,
+                 c_k=3, c_s=1, c_p=1,  # conv param
+                 p_k=3, p_s=1, p_p=1,  # pool param
+                 if_pool: bool = True):
+        super(ConvModule, self).__init__()
+
+        self.conv = nn.Conv1d(in_channels=1,
+                              out_channels=1,
+                              kernel_size=c_k,
+                              stride=c_s,
+                              padding=c_p)
+
+        self.if_pool = if_pool
+        if if_pool:
+            self.pool = nn.MaxPool1d(kernel_size=p_k,
+                                     stride=p_s,
+                                     padding=p_p)
+
+    def forward(self, x):
+        out = self.conv(x)
+
+        if self.if_pool:
+            out = self.pool(out)
+
+        return out
 
 ##11用预测值去预测 凌晨
 class CNNBiLSTM(nn.Module):
