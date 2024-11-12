@@ -33,6 +33,12 @@ if __name__ == '__main__':
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.AdamW(model.parameters(),
                                   lr=config.learning_rate, weight_decay=config.weight_decay)
+    print(f"Configuration Parameters:")
+    print(f" - Batch size: {config.batch_size}")
+    print(f" - Lookback: {config.lookback}")
+    print(f" - Epochs: {config.epoch_size}")
+    print(f" - Learning rate: {config.learning_rate}")
+    print(f" - Weight decay: {config.weight_decay}")
 
     print("Training...")
     model = CNNBiLstmtrain(model,
