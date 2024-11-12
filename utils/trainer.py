@@ -388,3 +388,57 @@ def CNNBiLstmtrain(model, trainloader, valloader, criterion, optimizer, config):
 #     logfile.write("\n")
 #     logfile.close()
 #     return model
+############################################   draw the train fit image.
+import matplotlib.pyplot as plt
+
+def CNNBiLstmtrain(model, trainloader, valloader, criterion, optimizer, config):
+    logfile = open("./log/trainLog.txt", mode='a+', encoding='utf-8')
+    
+    for epoch in range(config.epoch_size):
+        model.train()
+        for idx, (X, Y) in enumerate(trainloader):
+            # Conv1d接受的数据输入是(batch_size有, channel_size=1, seq_len有),故增加一个通道数，单序列通道数为1，第2维
+            X = X.unsqueeze(-2).to(config.device)
+            Y = Y.to(config.device)
+            
+            predict = model(X)
+            loss = criterion(predict, Y)
+            
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            if idx % 10 == 0:
+                print(f"Epoch: {epoch} batch: {idx} | loss: {loss}")
+                
+        # 一个epoch结束,进行一次验证,并保存相关记录
+        #valMSE = CNNBiLstm_evaluate(model, loader=valloader, config=config, val_mode=True)
+        # print(f"Epoch: {epoch} valLoss: {valMSE}")
+        # logfile.write("Epoch: {0} valLoss: {1} \n".format(epoch, valMSE))
+
+        # 计算并绘制训练集的拟合结果
+        if epoch % 1 == 0:  # 每个 epoch 绘制一次
+            model.eval()  # 切换到评估模式
+            train_predictions = []
+            train_true = []
+            with torch.no_grad():
+                for X_train, Y_train in trainloader:
+                    X_train = X_train.unsqueeze(-2).to(config.device)
+                    Y_train = Y_train.to(config.device)
+                    pred_train = model(X_train)
+                    train_predictions.extend(pred_train.cpu().numpy())
+                    train_true.extend(Y_train.cpu().numpy())
+
+            # 绘制训练集的拟合结果
+            plt.figure(figsize=(10, 5))
+            plt.plot(train_true[:1000], label='True Values', color='blue')  # 显示前100个真实值
+            plt.plot(train_predictions[:1000], label='Predictions', color='red', linestyle='--')  # 显示前100个预测值
+            plt.title(f"Epoch {epoch+1} - Training Set Fitting")
+            plt.xlabel("Sample Index")
+            plt.ylabel("Value")
+            plt.legend()
+            plt.show()
+
+    logfile.write("\n")
+    logfile.close()
+    return model
