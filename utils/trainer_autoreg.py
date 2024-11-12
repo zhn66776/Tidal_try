@@ -17,17 +17,15 @@ def CNNBiLstm_evaluate(model, initial_sequence, test_Y, config):
     y_true = test_Y.squeeze().tolist()  # 真实的标签值列表
     y_pred = []  # 存储模型的预测值
 
-    # 将初始序列转换为列表，方便后续操作
+    
     current_sequence = initial_sequence.squeeze().tolist()
 
     # 预测步数，与测试集的长度一致
     predict_steps = len(y_true)
 
     for i in range(predict_steps):
-        # 准备输入数据，转换为张量并调整形状
-        input_seq = torch.tensor(current_sequence, dtype=torch.float32).unsqueeze(0).unsqueeze(-2).to(config.device)
         
-        # 预测下一个值
+        input_seq = torch.tensor(current_sequence, dtype=torch.float32).unsqueeze(0).unsqueeze(-2).to(config.device)
         with torch.no_grad():
             predicted_value = model(input_seq).cpu().item()
         
