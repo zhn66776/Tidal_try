@@ -66,7 +66,7 @@ class CNNBiLSTM(nn.Module):
     def __init__(self, hidden_size, num_layers):
         super(CNNBiLSTM, self).__init__()
 
-        # 您可以根据需要调整 ConvModule 的层数和参数
+        
         self.conv_pool = nn.Sequential(ConvModule())
         self.lstm = BiLSTMModule(hidden_size=hidden_size, num_layers=num_layers)
 
@@ -77,7 +77,7 @@ class CNNBiLSTM(nn.Module):
         x = x.squeeze(dim=1)  # x 形状: (batch_size, seq_len)
         x = x.unsqueeze(-1)   # x 形状: (batch_size, seq_len, feature_size=1)
         
-        out = self.lstm(x)    # 输出形状取决于 LSTM 的设置
+        out = self.lstm(x)
         return out
 
 
