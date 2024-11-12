@@ -20,13 +20,13 @@ if __name__ == '__main__':
     # 创建Pytorch使用的dataset
     trainSet = custom_dataset(train_X, train_Y)
     valSet = custom_dataset(val_X, val_Y)
-    # 不再需要创建 testSet
+    
 
     train_loader = DataLoader(trainSet, batch_size=config.batch_size,
                               shuffle=False, pin_memory=True, num_workers=4, drop_last=True)
     val_loader = DataLoader(valSet, batch_size=config.batch_size,
                             shuffle=False, pin_memory=True, num_workers=4, drop_last=False)
-    # 不再需要创建 test_loader
+    
 
     print("Model loading...")
     model = CNNBiLSTM(hidden_size=12, num_layers=3).to(config.device)
