@@ -101,7 +101,47 @@ def CNNBiLstm_evaluate_validation(model, loader, config):
 
     valMSE = mean_squared_error(y_true=y_true, y_pred=y_pred)
     return valMSE
+# def CNNBiLstmtrain(model, trainloader, valloader, criterion, optimizer, config):
+#     logfile = open("./log/trainLog.txt", mode='a+', encoding='utf-8')
+#     train_losses = []
+#     val_losses = []
+#     for epoch in range(config.epoch_size):
+#         model.train()
+#         train_loss = 0.0
+#         for idx, (X, Y) in enumerate(trainloader):
+#             # Conv1d接受的数据输入是(batch_size, channel_size=1, seq_len)，故增加一个通道数，单序列通道数为1，第2维
+#             X = X.unsqueeze(-2).to(config.device)
+#             Y = Y.to(config.device)
+            
+#             predict = model(X)
+#             loss = criterion(predict, Y)
+            
+#             optimizer.zero_grad()
+#             loss.backward()
+#             optimizer.step()
+#             train_loss += loss.item()
 
+#             if idx % 10 == 0:
+#                 print(f"Epoch: {epoch} batch: {idx} | loss: {loss.item()}")
+#         train_loss /= len(trainloader)
+#         train_losses.append(train_loss)        
+#         # 一个epoch结束,进行一次验证,并保存相关记录
+#         valMSE = CNNBiLstm_evaluate_validation(model, valloader, config)
+#         val_losses.append(valMSE)
+#         print(f"Epoch: {epoch} valLoss: {valMSE}")
+#         logfile.write("Epoch: {0} valLoss: {1} \n".format(epoch, valMSE))
+
+#     logfile.write("\n")
+#     logfile.close()
+#     plt.figure(figsize=(10, 5))
+#     plt.plot(range(config.epoch_size), train_losses, label='Train Loss')
+#     plt.plot(range(config.epoch_size), val_losses, label='Validation Loss')
+#     plt.xlabel('Epoch')
+#     plt.ylabel('Loss')
+#     plt.title('Training and Validation Loss per Epoch')
+#     plt.legend(loc='best')
+#     plt.show()
+#     return model
 
 def RNNtrain(model, trainloader,valloader,criterion, optimizer, config):
     logfile = open("./log/trainLog.txt",mode='a+',encoding='utf-8')
