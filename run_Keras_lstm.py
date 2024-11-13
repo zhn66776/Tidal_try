@@ -41,7 +41,7 @@ val_size = int(len(dataset) * 0.05)    # 5% 验证
 test_size = len(dataset) - train_size - val_size  # 剩余 5% 测试
 train, val, test = dataset[0:train_size, :], dataset[train_size:train_size + val_size, :], dataset[train_size + val_size:, :]
 
-# 定义时间步长
+# 定义时间步长=======================================================================================         loookback          =======================================
 look_back = 200
 trainX, trainY = create_dataset(train, look_back)
 valX, valY = create_dataset(val, look_back)
@@ -65,7 +65,7 @@ model.add(Dense(1))
 optimizer = Adam(learning_rate=learning_rate)
 model.compile(loss='mse', optimizer=optimizer)
 
-# 使用验证集训练模型并记录损失
+# 使用验证集训练模型并记录损失================================================================================         parameter         =============================================================
 history = model.fit(trainX, trainY, validation_data=(valX, valY), epochs=200, batch_size=64, verbose=1)
 
 # 绘制训练和验证损失
