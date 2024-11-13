@@ -7,6 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 from keras.regularizers import l2
 from keras.optimizers import Adam
+from keras.callbacks import ReduceLROnPlateau
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import time  # helper libraries
@@ -36,12 +37,12 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 dataset = scaler.fit_transform(dataset)
 
 # 分割数据集
-train_size = int(len(dataset) * 0.9)  # 90% 训练
-val_size = int(len(dataset) * 0.05)    # 5% 验证
+train_size = int(len(dataset) * 0.7)  # 90% 训练
+val_size = int(len(dataset) * 0.2)    # 5% 验证
 test_size = len(dataset) - train_size - val_size  # 剩余 5% 测试
 train, val, test = dataset[0:train_size, :], dataset[train_size:train_size + val_size, :], dataset[train_size + val_size:, :]
 
-# 定义时间步长=======================================================================================         loookback          =======================================
+# 定义时间步长
 look_back = 200
 trainX, trainY = create_dataset(train, look_back)
 valX, valY = create_dataset(val, look_back)
@@ -53,11 +54,11 @@ valX = np.reshape(valX, (valX.shape[0], 1, valX.shape[1]))
 testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 
 # 创建 LSTM 模型，添加 L2 正则化和学习率
-learning_rate = 0.00001  # 设置学习率
+learning_rate = 0.001  # 设置初始学习率
 weight_decay = 0.0001    # 设置 L2 正则化系数
 
 model = Sequential()
-model.add(LSTM(50, input_shape=(1, look_back), kernel_regularizer=l2(weight_decay)))
+model.add(LSTM(75, input_shape=(1, look_back), kernel_regularizer=l2(weight_decay)))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 
@@ -65,8 +66,11 @@ model.add(Dense(1))
 optimizer = Adam(learning_rate=learning_rate)
 model.compile(loss='mse', optimizer=optimizer)
 
-# 使用验证集训练模型并记录损失================================================================================         parameter         =============================================================
-history = model.fit(trainX, trainY, validation_data=(valX, valY), epochs=200, batch_size=64, verbose=1)
+# 定义动态学习率回调
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.8, patience=10, min_lr=1e-6, verbose=1)
+
+# 使用验证集训练模型并记录损失
+history = model.fit(trainX, trainY, validation_data=(valX, valY), epochs=500, batch_size=128, verbose=1, callbacks=[reduce_lr])
 
 # 绘制训练和验证损失
 plt.figure(figsize=(10, 6))
@@ -113,4 +117,3 @@ plt.ylabel("Water Level")
 plt.title("Test Data: Actual vs Rolling Predicted")
 plt.legend()
 plt.show()
-
