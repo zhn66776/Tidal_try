@@ -42,7 +42,7 @@ val_size = int(len(dataset) * 0.2)    # 5% 验证
 test_size = len(dataset) - train_size - val_size  # 剩余 5% 测试
 train, val, test = dataset[0:train_size, :], dataset[train_size:train_size + val_size, :], dataset[train_size + val_size:, :]
 
-# 定义时间步长
+# 定义时间步长********************************************lookback*****************************************************
 look_back = 200
 trainX, trainY = create_dataset(train, look_back)
 valX, valY = create_dataset(val, look_back)
@@ -69,7 +69,7 @@ model.compile(loss='mse', optimizer=optimizer)
 # 定义动态学习率回调
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.8, patience=10, min_lr=1e-6, verbose=1)
 
-# 使用验证集训练模型并记录损失
+# 使用验证集训练模型并记录损失******************************************parameter******************************************************
 history = model.fit(trainX, trainY, validation_data=(valX, valY), epochs=500, batch_size=128, verbose=1, callbacks=[reduce_lr])
 
 # 绘制训练和验证损失
@@ -107,6 +107,20 @@ r2 = r2_score(test_actual_data, rolling_predictions)
 print(f'Test RMSE: {rmse:.2f}')
 print(f'Test MAE: {mae:.2f}')
 print(f'Test R²: {r2:.2f}')
+step_errors = []  # 存储每个时间步的误差（MSE 或 RMSE）
+for i in range(len(testY)):
+    mse = mean_squared_error([test_actual_data[i]], [rolling_predictions[i]])
+    rmse = math.sqrt(mse)
+    step_errors.append(rmse)
+
+# 绘制误差随时间步的变化
+plt.figure(figsize=(18, 10))
+plt.plot(step_errors, label="RMSE per Time Step")
+plt.xlabel("Time Steps")
+plt.ylabel("RMSE")
+plt.title("Rolling Prediction Error (RMSE) per Time Step")
+plt.legend()
+plt.show()
 
 # 绘制测试集的实际值和滚动预测值进行对比
 plt.figure(figsize=(18, 10))
