@@ -4,7 +4,7 @@ import pandas as pd
 from pandas import read_csv
 import math
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Dropout
+from keras.layers import Dense, LSTM, Dropout, Bidirectional
 from keras.regularizers import l2
 from keras.optimizers import Adam
 from keras.callbacks import ReduceLROnPlateau
@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import time  # helper libraries
 
 # 定义文件路径
-input_file = "StockPricesPredictionProject/can1998HA.csv"
+input_file = "dataProcessed/procan.csv"
 
 # 转换数据集函数
 def create_dataset(dataset, look_back=1):
@@ -37,12 +37,12 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 dataset = scaler.fit_transform(dataset)
 
 # 分割数据集
-train_size = int(len(dataset) * 0.7)  # 90% 训练
-val_size = int(len(dataset) * 0.2)    # 5% 验证
-test_size = len(dataset) - train_size - val_size  # 剩余 5% 测试
+train_size = int(len(dataset) * 0.8)  # 60% 训练
+val_size = int(len(dataset) * 0.1)    # 10% 验证
+test_size = len(dataset) - train_size - val_size  # 剩余 30% 测试
 train, val, test = dataset[0:train_size, :], dataset[train_size:train_size + val_size, :], dataset[train_size + val_size:, :]
 
-# 定义时间步长********************************************lookback*****************************************************
+# 定义时间步长-------------------------------------------------------------------------------------------------------------------
 look_back = 200
 trainX, trainY = create_dataset(train, look_back)
 valX, valY = create_dataset(val, look_back)
@@ -53,12 +53,12 @@ trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 valX = np.reshape(valX, (valX.shape[0], 1, valX.shape[1]))
 testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 
-# 创建 LSTM 模型，添加 L2 正则化和学习率
+# 创建 BiLSTM 模型
 learning_rate = 0.001  # 设置初始学习率
-weight_decay = 0.0001    # 设置 L2 正则化系数
-
+weight_decay = 0.0001  # 设置 L2 正则化系数
+#-------------------------------------------------------------------------------------------------------------------------------
 model = Sequential()
-model.add(LSTM(75, input_shape=(1, look_back), kernel_regularizer=l2(weight_decay)))
+model.add(Bidirectional(LSTM(500, input_shape=(1, look_back), kernel_regularizer=l2(weight_decay))))
 model.add(Dropout(0.1))
 model.add(Dense(1))
 
@@ -67,10 +67,10 @@ optimizer = Adam(learning_rate=learning_rate)
 model.compile(loss='mse', optimizer=optimizer)
 
 # 定义动态学习率回调
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.8, patience=10, min_lr=1e-6, verbose=1)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=10, min_lr=1e-6, verbose=1)
 
-# 使用验证集训练模型并记录损失******************************************parameter******************************************************
-history = model.fit(trainX, trainY, validation_data=(valX, valY), epochs=500, batch_size=128, verbose=1, callbacks=[reduce_lr])
+# 使用验证集训练模型并记录损失-------------------------------------------------------------------------------------------------------
+history = model.fit(trainX, trainY, validation_data=(valX, valY), epochs=300, batch_size=256, verbose=1, callbacks=[reduce_lr])
 
 # 绘制训练和验证损失
 plt.figure(figsize=(10, 6))
@@ -107,13 +107,14 @@ r2 = r2_score(test_actual_data, rolling_predictions)
 print(f'Test RMSE: {rmse:.2f}')
 print(f'Test MAE: {mae:.2f}')
 print(f'Test R²: {r2:.2f}')
-step_errors = []  # 存储每个时间步的误差（MSE 或 RMSE）
+
+# 绘制误差随时间步的变化
+step_errors = []
 for i in range(len(testY)):
     mse = mean_squared_error([test_actual_data[i]], [rolling_predictions[i]])
     rmse = math.sqrt(mse)
     step_errors.append(rmse)
 
-# 绘制误差随时间步的变化
 plt.figure(figsize=(18, 10))
 plt.plot(step_errors, label="RMSE per Time Step")
 plt.xlabel("Time Steps")
