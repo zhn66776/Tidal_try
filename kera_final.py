@@ -31,9 +31,16 @@ total_required = total_train_points + look_back_points + total_test_points
 if len(df) < total_required:
     raise ValueError(f"Dataset too small. Required: {total_required}, Current: {len(df)}")
 
-max_start_index = len(df) - total_required
-start_index = np.random.randint(0, max_start_index + 1)
+# 指定固定的起始位置（例如从索引 5000 开始）
+start_index = 95000
+
+if start_index + total_required > len(df):
+    raise ValueError(f"Specified start_index={start_index} is too large. Not enough data points.")
+
 print(f"Selected start index: {start_index}")
+
+# 从指定的起始点选取数据
+df_sampled = df.iloc[start_index:start_index + total_required].reset_index(drop=True)
 
 df_sampled = df.iloc[start_index:start_index + total_required].reset_index(drop=True)
 
@@ -41,7 +48,7 @@ anomaly = df_sampled['anomaly'].values.reshape(-1, 1)
 utide_original = df_sampled['utide'].values.reshape(-1, 1)
 
 # 定义utide_factor来调整utide权重（仅在训练和预测输入阶段有影响）
-utide_factor = 0.6
+utide_factor = 0.2
 utide_adjusted = utide_original * utide_factor
 
 # 为训练数据分开对anomaly和factor*utide进行缩放
@@ -125,9 +132,9 @@ def build_lstm_single(input_shape):
 
 def build_bilstm_single(input_shape):
     input_layer = Input(shape=input_shape)
-    x = Bidirectional(LSTM(500, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
+    x = Bidirectional(LSTM(700, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
     x = Dropout(0.4)(x)
-    x = Bidirectional(LSTM(200, kernel_regularizer=l2(0.0001)))(x)
+    x = Bidirectional(LSTM(700, kernel_regularizer=l2(0.0001)))(x)
     x = Dropout(0.4)(x)
     output_layer = Dense(1)(x)
     model = Model(inputs=input_layer, outputs=output_layer)
@@ -136,9 +143,9 @@ def build_bilstm_single(input_shape):
 
 def build_gru_single(input_shape):
     input_layer = Input(shape=input_shape)
-    x = Bidirectional(GRU(450, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
+    x = Bidirectional(GRU(700, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
     x = Dropout(0.4)(x)
-    x = Bidirectional(GRU(450, kernel_regularizer=l2(0.0001)))(x)
+    x = Bidirectional(GRU(700, kernel_regularizer=l2(0.0001)))(x)
     x = Dropout(0.4)(x)
     output_layer = Dense(1)(x)
     model = Model(inputs=input_layer, outputs=output_layer)
@@ -147,9 +154,9 @@ def build_gru_single(input_shape):
 
 def build_bilstm_multi(input_shape):
     input_layer = Input(shape=input_shape)
-    x = Bidirectional(LSTM(500, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
+    x = Bidirectional(LSTM(700, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
     x = Dropout(0.4)(x)
-    x = Bidirectional(LSTM(500, kernel_regularizer=l2(0.0001)))(x)
+    x = Bidirectional(LSTM(700, kernel_regularizer=l2(0.0001)))(x)
     x = Dropout(0.4)(x)
     output_layer = Dense(1)(x)
     model = Model(inputs=input_layer, outputs=output_layer)
@@ -158,9 +165,9 @@ def build_bilstm_multi(input_shape):
 
 def build_gru_multi(input_shape):
     input_layer = Input(shape=input_shape)
-    x = Bidirectional(GRU(450, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
+    x = Bidirectional(GRU(700, return_sequences=True, kernel_regularizer=l2(0.0001)))(input_layer)
     x = Dropout(0.4)(x)
-    x = Bidirectional(GRU(450, kernel_regularizer=l2(0.0001)))(x)
+    x = Bidirectional(GRU(700, kernel_regularizer=l2(0.0001)))(x)
     x = Dropout(0.4)(x)
     output_layer = Dense(1)(x)
     model = Model(inputs=input_layer, outputs=output_layer)
@@ -284,8 +291,8 @@ all_models.update(multi_feature_models)
 
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, verbose=1, min_lr=1e-6)
 
-epochs = 100
-batch_size = 512
+epochs = 40
+batch_size = 128
 
 histories = {}
 
