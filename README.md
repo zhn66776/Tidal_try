@@ -10,4 +10,4 @@
  
  -"notebook" is the overall experiment notebook of my project.
 
- - please note that all my project were ran in Google Colab, and I uploaded my notebook to this repo. Therefore the "edit time" showed on github may seem strange.
+ - please note that all my project were ran in Google Colab, and I uploaded my notebook to this repo. Therefore the "commit time" showed on github may seem strange.
