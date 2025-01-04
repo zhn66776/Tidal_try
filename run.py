@@ -10,14 +10,12 @@ if __name__ == '__main__':
     config = Config()
 
     print("Data loading...")
-    # 序列数据
+
     dataset = mydataReader("./dataProcessed/IrishNationalTideGaugeNetwork_Ballycotton Harbour2017.csv")
 
-    # 创建X/Y
-    # 划分训练集和测试集，70% 作为训练集,10%作为验证集,20%作为测试集
+
     (train_X ,train_Y ), (val_X,val_Y), (test_X ,test_Y )= dataset.split(lookback=config.lookback,trainSet_ratio=0.7,valSet_ratio=0.1)
 
-    # 创建Pytorch使用的dataset
     trainSet = custom_dataset(train_X,train_Y)
     valSet = custom_dataset(val_X,val_Y)
     testSet = custom_dataset(test_X,test_Y)
