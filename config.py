@@ -1,8 +1,6 @@
 import torch
 
-# ##############################################################
-# 设置神经网络中超参数
-# ##############################################################
+
 # class Config:
 #     def __init__(self):
 #         super(Config, self).__init__()
@@ -15,8 +13,8 @@ import torch
 import torch
 class Config:
     def __init__(self):
-        self.lookback = 20  # 输入序列长度
-        self.n_steps = 1    # 预测未来的时间步数
+        self.lookback = 20 
+        self.n_steps = 1    
         self.batch_size = 27
         self.epoch_size = 6
         self.learning_rate = 0.01
